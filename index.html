@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LUXURY MASTER® — Demo Single File (Mock AI)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#050505; --gold:#d4af37; --muted:#222;
+      --card:#0a0a0a; --accent:#d4af37;
+      color-scheme: dark;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial;background:var(--bg);color:#fff;-webkit-font-smoothing:antialiased}
+    .app{min-height:100%;display:flex;flex-direction:column}
+    header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:rgba(0,0,0,0.45);border-bottom:1px solid rgba(255,255,255,0.03)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:52px;height:52px;border-radius:8px;background:linear-gradient(135deg,#2a2a2a 0%, rgba(212,175,55,0.08) 100%);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--gold);font-family:Cinzel,serif}
+    h1{font-family:Cinzel,serif;margin:0;font-size:20px;letter-spacing:1px;color:var(--gold)}
+    .sub{font-size:11px;color:#bdbdbd;opacity:.9}
+    main{flex:1;display:flex;gap:20px;padding:28px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border:1px solid rgba(255,255,255,0.04);padding:18px;border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,0.6)}
+    .left{width:680px;max-width:95%}
+    .right{width:360px;max-width:95%}
+    /* Wheel */
+    .wheel-wrap{position:relative;height:520px;display:flex;align-items:center;justify-content:center}
+    canvas#wheel{width:420px;height:420px;border-radius:50%;background:transparent;display:block}
+    .spin-btn{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;width:140px;height:140px;border-radius:50%;cursor:pointer;border:6px solid #0a0a0a;background:linear-gradient(180deg,var(--gold),#b8952b);color:#000;font-weight:900;box-shadow:0 15px 40px rgba(0,0,0,.6)}
+    .control-row{display:flex;gap:12px;margin-top:14px}
+    button.btn{background:#111;border:1px solid rgba(255,255,255,0.04);color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer}
+    button.btn.primary{background:var(--gold);color:#000;font-weight:900}
+    .small{font-size:12px;padding:8px 10px}
+    /* Modals */
+    .modal-back{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:80}
+    .modal{width:720px;max-width:96%;background:var(--card);border-radius:18px;padding:18px;border:1px solid rgba(255,255,255,0.03)}
+    .grid{display:grid;gap:10px}
+    .grid.cols2{grid-template-columns:1fr 1fr}
+    label{font-size:12px;color:#bdbdbd}
+    input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:#070707;color:#fff;resize:none}
+    textarea{min-height:100px}
+    ul.list{padding:0;margin:0;list-style:none}
+    li.item{padding:8px;border-radius:8px;background:rgba(255,255,255,0.01);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+    .muted{color:#9d9d9d;font-size:12px}
+    /* Editor + analysis */
+    .editor{height:200px;background:#071018;border-radius:10px;padding:6px;overflow:auto}
+    .codearea{width:100%;height:100%;background:transparent;border:0;color:#d1d1d1;font-family:monospace;padding:8px;outline:none}
+    .analysis{max-height:360px;overflow:auto;padding:8px}
+    .summary{background:rgba(255,255,255,0.03);padding:10px;border-radius:8px}
+    footer{padding:12px 20px;text-align:center;color:#9a9a9a;font-size:12px}
+    /* Responsive */
+    @media (max-width:920px){main{padding:16px;flex-direction:column;align-items:center} .left,.right{width:95%}}
+    /* small helpers */
+    .badge{background:rgba(212,175,55,0.12);padding:6px 8px;border-radius:8px;color:var(--gold);font-weight:700;font-size:12px}
+    .inline{display:inline-flex;gap:8px;align-items:center}
+    .center{display:flex;align-items:center;justify-content:center}
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <div class="brand">
+        <div class="logo">LXM</div>
+        <div>
+          <h1>LUXURY MASTER® — Demo</h1>
+          <div class="sub">Versión demo: todo es LOCAL y MOCK (sin API keys)</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="muted">Usuario: demo@luxury.local</div>
+        <button class="btn" id="openCommanderBtn">Configuración</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel left">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div>
+            <div class="muted">SISTEMA</div>
+            <h2 style="margin:6px 0 0 0;font-family:Cinzel,serif">LUXURY MASTER — DEMO</h2>
+          </div>
+          <div class="inline">
+            <div class="badge" id="levelBadge">FREE</div>
+          </div>
+        </div>
+
+        <div class="wheel-wrap panel" style="padding:18px">
+          <canvas id="wheel" width="1000" height="1000" aria-label="Wheel of prizes"></canvas>
+          <div class="spin-btn" id="spinBtn" title="Girar" role="button" aria-pressed="false">
+            <div style="font-size:10px">Tocar para</div>
+            <div style="font-size:20px;margin-top:6px">GIRAR</div>
+            <div style="font-size:10px;margin-top:6px">DEMO</div>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <button class="btn small" id="openRegistration">Registrar Participante</button>
+          <button class="btn small" id="showWinnerHistory">Ver Historico</button>
+          <button class="btn small" id="exportLeads">Exportar CSV</button>
+        </div>
+
+      </section>
+
+      <aside class="panel right">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div class="muted">DEV TOOLS</div>
+            <div style="font-weight:800">Architect Engine</div>
+          </div>
+          <button class="btn" id="openDev">Abrir</button>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <label>Prizes actuales</label>
+          <ul class="list" id="prizeList" style="margin-top:8px"></ul>
+        </div>
+
+        <div style="margin-top:14px">
+          <label>Broadcast</label>
+          <textarea id="broadcastText" placeholder="Mensaje global (local demo)" rows="3"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn" id="showBroadcast">Mostrar</button>
+            <button class="btn" id="clearBroadcast">Limpiar</button>
+          </div>
+        </div>
+
+      </aside>
+    </main>
+
+    <footer>Este archivo es una demo local. Para producción despliegue un backend seguro y no exponga claves en el cliente.</footer>
+  </div>
+
+  <!-- MODALS and hidden elements -->
+  <div id="modalContainer" style="display:none"></div>
+
+  <script>
+  /*
+    Single-file demo of core UI and flows.
+    - All "AI" features are mocked locally.
+    - No network calls, no secrets.
+    - Spanish UI (como solicitaste).
+  */
+
+  (function(){
+    // --- In-memory app state (simula DB) ---
+    const state = {
+      prizes: ["PREMIO 1","PREMIO 2","PREMIO 3","PREMIO 4","BONO SORPRESA","TARJETA REGALO"],
+      advancedPrizes: [],
+      history: [], // {nombre, fecha, leadData}
+      leadFields: [
+        { id: 'nombre', label: 'Nombre Completo', placeholder: 'Ej: Juan Pérez', type: 'text', required: true },
+        { id: 'email', label: 'Correo Electrónico', placeholder: 'juan@ejemplo.com', type: 'email', required: true },
+        { id: 'telefono', label: 'Teléfono', placeholder: '+34 600 000 000', type: 'tel', required: true }
+      ],
+      level: 'free',
+      backgroundImage: null,
+      broadcast: null
+    };
+
+    // --- Helpers ---
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    // --------- WHEEL ----------
+    const canvas = $("#wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = $("#spinBtn");
+    let angle = 0;
+    let isSpinning = false;
+
+    function drawWheel() {
+      const size = 1000;
+      const cx = size/2;
+      const r = size/2 - 20;
+      const n = state.prizes.length;
+      ctx.clearRect(0,0,size,size);
+      const slice = (Math.PI*2)/n;
+      ctx.save();
+      for(let i=0;i<n;i++){
+        ctx.beginPath();
+        ctx.fillStyle = i%2===0 ? '#d4af37' : '#0b0b0b';
+        ctx.moveTo(cx,cx);
+        ctx.arc(cx,cx,r, angle + i*slice, angle + (i+1)*slice);
+        ctx.fill();
+        ctx.save();
+        ctx.translate(cx,cx);
+        ctx.rotate(angle + i*slice + slice/2);
+        ctx.fillStyle = i%2===0 ? '#000' : '#fff';
+        ctx.font = "bold 36px Inter, sans-serif";
+        ctx.textAlign = "right";
+        const text = String(state.prizes[i]).toUpperCase().substring(0,18);
+        ctx.fillText(text, r - 60, 12);
+        ctx.restore();
+      }
+      // center
+      ctx.beginPath();
+      ctx.arc(cx,cx,68,0,Math.PI*2);
+      ctx.fillStyle="#0a0a0a";
+      ctx.fill();
+      ctx.strokeStyle="#d4af37";
+      ctx.lineWidth=6;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function updatePrizesUI(){
+      const ul = $("#prizeList");
+      ul.innerHTML = "";
+      state.prizes.forEach((p, i) => {
+        const li = document.createElement("li");
+        li.className="item";
+        li.innerHTML = '<div style="font-weight:700">'+(i+1)+'. '+p+'</div><div><button class="btn small edit" data-id="'+i+'">Editar</button></div>';
+        ul.appendChild(li);
+      });
+      // attach edit buttons
+      $$(".edit").forEach(b => b.onclick = (e)=> openPrizeEditor(parseInt(e.target.dataset.id)));
+    }
+
+    function spinOnce(){
+      if(isSpinning || state.prizes.length<2) return;
+      isSpinning = true;
+      spinBtn.setAttribute("aria-pressed","true");
+      // pick winner
+      const winnerIndex = Math.floor(Math.random()*state.prizes.length);
+      const finalAngle = ((Math.PI*1.5) - (winnerIndex*(Math.PI*2/state.prizes.length)) - (Math.PI/state.prizes.length)) + (Math.PI*2*8);
+      const start = performance.now();
+      const duration = 5000;
+      function animate(now){
+        const t = Math.min((now-start)/duration,1);
+        const ease = 1 - Math.pow(1 - t, 4);
+        angle = ease * finalAngle;
+        drawWheel();
+        if(t<1) requestAnimationFrame(animate);
+        else {
+          isSpinning=false;
+          spinBtn.setAttribute("aria-pressed","false");
+          const prize = state.prizes[winnerIndex];
+          saveWinner(prize);
+          showWinnerModal(prize);
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // Auto draw on resize
+    window.addEventListener('resize', drawWheel);
+
+    // ---------- Registration ----------
+    function openRegistrationModal(){
+      const modal = makeModal(`
+        <h3>Registro de Participante</h3>
+        <p class="muted">Complete los datos para reclamar premio</p>
+        <form id="regForm" style="margin-top:12px">
+          ${state.leadFields.map(f=>`<label>${f.label}${f.required? ' *':''}</label><input name="${f.id}" type="${f.type}" placeholder="${f.placeholder}" ${f.required?'required':''} />`).join('')}
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn primary" type="submit">Registrar y Girar</button>
+            <button class="btn" type="button" id="regClose">Cerrar</button>
+          </div>
+        </form>
+      `);
+      modal.querySelector('#regClose').onclick = () => closeModal();
+      modal.querySelector('#regForm').onsubmit = (evt)=>{
+        evt.preventDefault();
+        const form = evt.target;
+        const data = {};
+        let duplicate = false;
+        for(const f of state.leadFields){
+          const v = form[f.id].value.trim();
+          data[f.id]=v;
+          if(f.required && !v){ alert('Complete el campo '+f.label); return; }
+        }
+        // duplicate detection (by email or telefono)
+        const keyCheck = (data.email || data.telefono || '').toLowerCase();
+        if(keyCheck){
+          duplicate = state.history.some(h => {
+            const vals = h.leadData || {};
+            return Object.values(vals).some(v => String(v||'').toLowerCase() === keyCheck);
+          });
+        }
+        if(duplicate){ alert('Registro duplicado detectado. No permitido en demo.'); return; }
+        // set pending lead and auto spin
+        closeModal();
+        // store pending for display
+        state.pendingLead = data;
+        // start spin with short delay
+        setTimeout(() => spinOnce(), 300);
+      };
+    }
+
+    // ---------- Winner ----------
+    function saveWinner(prize){
+      const entry = { nombre: prize, fecha: new Date().toISOString(), leadData: state.pendingLead || null };
+      state.history.push(entry);
+      // clear pending
+      state.pendingLead = null;
+      // update UI counts
+      $("#levelBadge").textContent = state.level.toUpperCase();
+    }
+
+    function showWinnerModal(winner){
+      const modal = makeModal(`
+        <div style="text-align:center">
+          <h2 style="color:var(--gold);margin:4px 0">¡FELICIDADES!</h2>
+          <div style="font-size:28px;font-weight:900;margin:12px 0">${winner}</div>
+          <div class="muted">Premio registrado en el histórico (demo)</div>
+          <div style="margin-top:16px"><button class="btn primary" id="closeWinner">CONTINUAR</button></div>
+        </div>
+      `);
+      modal.querySelector('#closeWinner').onclick = closeModal;
+    }
+
+    // ---------- Prize Editor / Commander ----------
+    function openCommander(){
+      const modal = makeModal(`
+        <h3>Panel de Configuración (Demo)</h3>
+        <div style="display:flex;gap:12px;margin-top:10px">
+          <div style="flex:1">
+            <label>Título del sistema</label>
+            <input id="cfgTitle" value="LUXURY MASTER - DEMO" />
+          </div>
+          <div style="width:160px">
+            <label>Nivel</label>
+            <select id="cfgLevel"><option value="free">free</option><option value="pro">pro</option><option value="ppe">ppe</option></select>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <label>Fondo (subir imagen)</label>
+          <input type="file" id="bgUpload" accept="image/*" />
+          <div style="margin-top:8px" id="bgPreview"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn" id="genBg">Generar Fondo (Mock IA)</button>
+            <button class="btn" id="clearBg">Remover Fondo</button>
+          </div>
+        </div>
+
+        <hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)">
+
+        <div>
+          <label>Inventario de Premios</label>
+          <div id="prizeEditorList" style="margin-top:8px"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn" id="addPrize">+ Añadir</button>
+            <button class="btn" id="aiSuggest">Generar con IA (Mock)</button>
+            <button class="btn" id="restoreDefault">Restaurar</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+          <button class="btn" id="saveCmd">Cerrar y Guardar</button>
+        </div>
+      `);
+
+      // Bind UI values
+      modal.querySelector('#cfgLevel').value = state.level;
+      modal.querySelector('#bgUpload').onchange = (e)=>{
+        const f = e.target.files[0];
+        if(!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          state.backgroundImage = reader.result;
+          renderBgPreview(modal.querySelector('#bgPreview'));
+          applyBackground();
+        };
+        reader.readAsDataURL(f);
+      };
+      modal.querySelector('#clearBg').onclick = ()=> {
+        state.backgroundImage = null;
+        renderBgPreview(modal.querySelector('#bgPreview'));
+        applyBackground();
+      };
+      modal.querySelector('#genBg').onclick = async ()=> {
+        modal.querySelector('#genBg').textContent = 'Generando...';
+        await new Promise(r=>setTimeout(r,800)); // mock delay
+        // create a generated gradient image via canvas
+        state.backgroundImage = generateMockBackgroundDataURL();
+        renderBgPreview(modal.querySelector('#bgPreview'));
+        applyBackground();
+        modal.querySelector('#genBg').textContent = 'Generar Fondo (Mock IA)';
+      };
+
+      // prizes editor
+      const listNode = modal.querySelector('#prizeEditorList');
+      function renderPrizeEditor(){
+        listNode.innerHTML = '';
+        state.prizes.forEach((p,i)=>{
+          const row = document.createElement('div');
+          row.style.display='flex'; row.style.gap='8px'; row.style.marginBottom='8px';
+          const input = document.createElement('input');
+          input.value = p; input.style.flex='1';
+          const btnDel = document.createElement('button'); btnDel.className='btn'; btnDel.textContent='Eliminar';
+          btnDel.onclick = ()=> { state.prizes.splice(i,1); renderPrizeEditor(); updatePrizesUI(); };
+          input.onchange = ()=> { state.prizes[i]=input.value; updatePrizesUI(); };
+          row.appendChild(input); row.appendChild(btnDel);
+          listNode.appendChild(row);
+        });
+      }
+      renderPrizeEditor();
+
+      modal.querySelector('#addPrize').onclick = ()=>{
+        state.prizes.push('NUEVO PREMIO');
+        renderPrizeEditor(); updatePrizesUI();
+      };
+      modal.querySelector('#aiSuggest').onclick = ()=>{
+        // MOCK: produce suggestions based on title
+        const suggested = mockSuggestPrizes(modal.querySelector('#cfgTitle').value || 'empresa');
+        state.prizes = suggested;
+        renderPrizeEditor(); updatePrizesUI();
+      };
+      modal.querySelector('#restoreDefault').onclick = ()=>{
+        state.prizes = ["PREMIO 1","PREMIO 2","PREMIO 3","PREMIO 4"];
+        renderPrizeEditor(); updatePrizesUI();
+      };
+      modal.querySelector('#saveCmd').onclick = ()=>{
+        state.level = modal.querySelector('#cfgLevel').value;
+        closeModal();
+        $("#levelBadge").textContent = state.level.toUpperCase();
+      };
+    }
+
+    function renderBgPreview(node){
+      node.innerHTML = '';
+      if(state.backgroundImage){
+        const img = document.createElement('img');
+        img.src = state.backgroundImage;
+        img.style.maxWidth='100%'; img.style.borderRadius='12px';
+        node.appendChild(img);
+      } else {
+        node.innerHTML = '<div class="muted">Sin fondo</div>';
+      }
+    }
+
+    function applyBackground(){
+      if(state.backgroundImage){
+        document.body.style.backgroundImage = `url(${state.backgroundImage})`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundRepeat='no-repeat';
+        document.body.style.backgroundBlendMode='overlay';
+      } else {
+        document.body.style.backgroundImage = '';
+      }
+    }
+
+    function generateMockBackgroundDataURL(){
+      // canvas gradient
+      const cvs = document.createElement('canvas');
+      cvs.width = 1400; cvs.height = 900;
+      const c = cvs.getContext('2d');
+      const g = c.createLinearGradient(0,0,cvs.width,cvs.height);
+      g.addColorStop(0, '#0a0a0a');
+      g.addColorStop(0.4, '#111827');
+      g.addColorStop(1, '#6b4b10');
+      c.fillStyle = g;
+      c.fillRect(0,0,cvs.width,cvs.height);
+      // subtle pattern
+      c.fillStyle='rgba(212,175,55,0.03)';
+      for(let i=0;i<120;i++){
+        c.beginPath();
+        c.arc(Math.random()*cvs.width, Math.random()*cvs.height, Math.random()*80+10,0,Math.PI*2);
+        c.fill();
+      }
+      return cvs.toDataURL('image/jpeg',0.7);
+    }
+
+    // ---------- Prize Editor quick open ----------
+    function openPrizeEditor(index){
+      const modal = makeModal(`
+        <h3>Editar Premio</h3>
+        <input id="prName" />
+        <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+          <button class="btn primary" id="savePrize">Guardar</button>
+          <button class="btn" id="cClose">Cerrar</button>
+        </div>
+      `);
+      modal.querySelector('#prName').value = state.prizes[index] || '';
+      modal.querySelector('#savePrize').onclick = ()=>{
+        state.prizes[index]=modal.querySelector('#prName').value;
+        updatePrizesUI();
+        closeModal();
+      };
+      modal.querySelector('#cClose').onclick = closeModal;
+    }
+
+    // ---------- Mock AI suggest ----------
+    function mockSuggestPrizes(businessType){
+      // deterministic-ish suggestions based on businessType string hash
+      const base = ["EXPERIENCIA VIP","TARJETA ORO","DIA LIBRE","BONO SORPRESA","CENA GOURMET","SILLA VIP","CONSULTORIA PREMIUM","ACC. DE LUJO"];
+      // shuffle deterministically
+      const seed = Array.from(businessType).reduce((s,c)=>s+ c.charCodeAt(0),0);
+      const arr = base.slice();
+      arr.sort((a,b)=> (a.length+seed)%5 - (b.length+seed)%5 );
+      return arr.slice(0,8);
+    }
+
+    // ---------- History / Export ----------
+    function openHistory(){
+      const modal = makeModal(`<h3>Histórico de Ganadores</h3><div id="histList" style="max-height:320px;overflow:auto;margin-top:10px"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+          <button class="btn" id="downloadCsv">Exportar CSV</button>
+          <button class="btn" id="closeHist">Cerrar</button>
+        </div>`);
+      const listNode = modal.querySelector('#histList');
+      function render(){
+        listNode.innerHTML = '';
+        if(state.history.length===0) listNode.innerHTML='<div class="muted">Sin registros</div>';
+        state.history.slice().reverse().forEach(h=>{
+          const div = document.createElement('div');
+          div.className='item';
+          const left = document.createElement('div');
+          left.innerHTML = '<div style="font-weight:800">'+h.nombre+'</div><div class="muted">'+(h.leadData? (h.leadData.nombre || '') : '')+'</div>';
+          const right = document.createElement('div'); right.className='muted'; right.textContent = new Date(h.fecha).toLocaleString();
+          div.appendChild(left); div.appendChild(right);
+          listNode.appendChild(div);
+        });
+      }
+      render();
+      modal.querySelector('#downloadCsv').onclick = ()=> {
+        const headers = ["Premio","Fecha","Nombre","Email","Teléfono"];
+        const rows = state.history.map(h=>{
+          const ld = h.leadData || {};
+          return [h.nombre, h.fecha, ld.nombre||'', ld.email||'', ld.telefono||''];
+        });
+        downloadCSV('leads_demo', headers, rows);
+      };
+      modal.querySelector('#closeHist').onclick = closeModal;
+    }
+
+    function downloadCSV(name, headers, rows){
+      const csv = "\ufeff" + headers.join(",") + "\n" + rows.map(r => r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download = name + "_" + (new Date().toISOString().split('T')[0]) + ".csv"; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ---------- Broadcast ----------
+    $("#showBroadcast").onclick = ()=>{
+      state.broadcast = $("#broadcastText").value.trim() || null;
+      if(state.broadcast){
+        const modal = makeModal(`<div style="text-align:center"><h3 style="color:var(--gold)">Mensaje</h3><div style="margin-top:12px">${escapeHtml(state.broadcast)}</div><div style="margin-top:12px"><button class="btn" id="closeB">Cerrar</button></div></div>`);
+        modal.querySelector('#closeB').onclick = closeModal;
+      } else alert('No hay mensaje');
+    };
+    $("#clearBroadcast").onclick = ()=> { state.broadcast=null; $("#broadcastText").value=''; alert('Broadcast limpiado (demo)'); };
+
+    // ---------- Dev / Analysis ----------
+    function openDevPanel(){
+      const modal = makeModal(`
+        <h3>Developer Tools — Architect Engine (Demo)</h3>
+        <p class="muted">Pega código TypeScript/React para un análisis simulado (local)</p>
+        <div class="editor" style="margin-top:8px"><textarea id="codeArea" class="codearea">// Pega aquí tu código para análisis...\nfunction example(){\n  return 42;\n}</textarea></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn primary" id="runAnalysis">Analizar (Mock IA)</button>
+          <button class="btn" id="closeDev">Cerrar</button>
+        </div>
+        <div class="analysis" id="analysisResult" style="margin-top:12px"></div>
+      `);
+      modal.querySelector('#closeDev').onclick = closeModal;
+      modal.querySelector('#runAnalysis').onclick = async ()=>{
+        const code = modal.querySelector('#codeArea').value;
+        const res = mockAnalyzeCode(code);
+        renderAnalysis(res, modal.querySelector('#analysisResult'));
+      };
+    }
+
+    function mockAnalyzeCode(code){
+      const lines = code.split('\n').length;
+      const complexity = Math.min(9, Math.max(1, Math.ceil(lines/5)));
+      const concerns = [];
+      if(code.includes('process.env') || code.includes('API_KEY')) concerns.push('Posible fuga de credenciales (detected process.env.API_KEY)');
+      if(code.includes('fetch(') && code.includes('GEMINI')) concerns.push('Llamadas a API de generación en cliente');
+      const explanations = [
+        { section: 'Arquitectura', content: 'Componente frontal con lógica de UI y manejo local de estado.' },
+        { section: 'Seguridad', content: concerns.length ? 'Hay señales potenciales: ' + concerns.join('; ') : 'Sin alertas críticas en el análisis simulado.' }
+      ];
+      const suggestions = [
+        'Mover llamadas sensibles a un backend seguro.',
+        'Habilitar App Check y revisar reglas de DB.',
+        'Separar responsabilidades: UI vs Server.'
+      ];
+      return { summary: 'Análisis simulado basado en heurísticas locales.', complexityScore: complexity, securityConcerns: concerns, explanations, suggestions };
+    }
+
+    function renderAnalysis(res, node){
+      node.innerHTML = '';
+      const summ = document.createElement('div'); summ.className='summary';
+      summ.innerHTML = `<strong>Resumen:</strong><div style="margin-top:6px">${escapeHtml(res.summary)}</div>`;
+      const metrics = document.createElement('div'); metrics.style.marginTop='10px';
+      metrics.innerHTML = `<div class="muted">Complejidad cognitiva</div><div style="font-weight:800;font-size:20px;color:${res.complexityScore>7?'#ff7b7b':res.complexityScore>4?'#ffd36b':'#8ef0a2'}">${res.complexityScore}/10</div>`;
+      node.appendChild(summ); node.appendChild(metrics);
+      if(res.securityConcerns.length){
+        const sec = document.createElement('div'); sec.style.marginTop='8px';
+        sec.innerHTML = '<strong style="color:#ff7b7b">Alertas de seguridad:</strong><ul style="margin-top:6px">'+res.securityConcerns.map(s=>`<li class="muted">${escapeHtml(s)}</li>`).join('')+'</ul>';
+        node.appendChild(sec);
+      }
+      const expl = document.createElement('div'); expl.style.marginTop='8px';
+      expl.innerHTML = '<strong>Explicaciones:</strong><ul style="margin-top:6px">'+res.explanations.map(e=>`<li class="muted"><strong># ${escapeHtml(e.section)}:</strong> ${escapeHtml(e.content)}</li>`).join('')+'</ul>';
+      node.appendChild(expl);
+      const sug = document.createElement('div'); sug.style.marginTop='8px';
+      sug.innerHTML = '<strong>Recomendaciones:</strong><ul style="margin-top:6px">'+res.suggestions.map(s=>`<li class="muted">${escapeHtml(s)}</li>`).join('')+'</ul>';
+      node.appendChild(sug);
+    }
+
+    // ---------- Utilities: modal framework ----------
+    const modalRoot = $("#modalContainer");
+    function makeModal(html){
+      modalRoot.style.display='block';
+      modalRoot.innerHTML = `<div class="modal-back"><div class="modal">${html}</div></div>`;
+      modalRoot.querySelector('.modal-back').onclick = (e)=>{
+        if(e.target === modalRoot.querySelector('.modal-back')) closeModal();
+      };
+      return modalRoot.querySelector('.modal');
+    }
+    function closeModal(){
+      modalRoot.innerHTML=''; modalRoot.style.display='none';
+    }
+
+    // ---------- Misc ----------
+    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function downloadDataURI(dataURL, filename){
+      const a = document.createElement('a'); a.href = dataURL; a.download = filename || 'asset.png'; a.click();
+    }
+
+    // ---------- Mock video generation (only animated placeholder) ----------
+    function openMediaPreview(){
+      const modal = makeModal(`<h3>Media Lab (Demo)</h3>
+        <p class="muted">Generación de video simulada — preview animado</p>
+        <div style="margin-top:12px" id="mediaPreview" class="center"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+          <button class="btn" id="closeMedia">Cerrar</button>
+        </div>`);
+      const preview = modal.querySelector('#mediaPreview');
+      // create an animated element
+      const box = document.createElement('div');
+      box.style.width='480px'; box.style.height='240px'; box.style.borderRadius='12px';
+      box.style.background='linear-gradient(135deg,#111 0%, #1b2a4a 100%)';
+      box.style.display='flex'; box.style.alignItems='center'; box.style.justifyContent='center';
+      box.innerHTML = '<div style="text-align:center"><div style="font-size:22px;font-weight:900;color:var(--gold);">VIDEO DEMO</div><div class="muted" style="margin-top:6px">Preview animado (no es video real)</div></div>';
+      preview.appendChild(box);
+      // Add simple animation
+      box.animate([{transform:'scale(0.98)'},{transform:'scale(1.02)'}],{duration:1400,iterations:Infinity,direction:'alternate'});
+      modal.querySelector('#closeMedia').onclick = closeModal;
+    }
+
+    // ---------- Bind buttons ----------
+    $("#openCommanderBtn").onclick = openCommander;
+    $("#openRegistration").onclick = openRegistrationModal;
+    $("#showWinnerHistory").onclick = openHistory;
+    $("#exportLeads").onclick = ()=> {
+      if(state.history.length===0){ alert('Sin registros para exportar'); return; }
+      const headers=["Premio","Fecha","Nombre","Email","Teléfono"];
+      const rows = state.history.map(h=> [h.nombre, h.fecha, (h.leadData||{}).nombre||'', (h.leadData||{}).email||'', (h.leadData||{}).telefono||'']);
+      downloadCSV('leads_demo', headers, rows);
+    };
+    $("#openDev").onclick = openDevPanel;
+    spinBtn.onclick = ()=> {
+      // If require registration and no pending, open reg (demo: requireRegistration false)
+      spinOnce();
+    };
+
+    // broadcast show on top when set
+    function showBroadcastIfSet(){
+      if(state.broadcast){
+        // simple toast/modal
+        const modal = makeModal(`<div style="text-align:center;padding:18px"><h3 style="color:var(--gold)">${escapeHtml(state.broadcast)}</h3><div style="margin-top:12px"><button class="btn" id="closeB2">Cerrar</button></div></div>`);
+        modal.querySelector('#closeB2').onclick = ()=>{
+          closeModal();
+        };
+      }
+    }
+
+    // ---------- Init ----------
+    function init(){
+      drawWheel();
+      updatePrizesUI();
+      showBroadcastIfSet();
+    }
+
+    // small helpers
+    function showWinnerModalLink(){ /* placeholder */ }
+
+    // Escape early for keyboard accessibility: allow Space to spin
+    document.addEventListener('keydown', (e)=>{ if(e.code==='Space'){ e.preventDefault(); spinOnce(); } });
+
+    // start
+    init();
+
+    // Expose some for debug (only in demo)
+    window.__LXM_DEMO = { state, spinOnce, openCommander, openDevPanel, openRegistrationModal, openHistory, openMediaPreview, generateMockBackgroundDataURL };
+
+  })();
+  </script>
+</body>
+</html>
