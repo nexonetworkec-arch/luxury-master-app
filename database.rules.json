@@ -1,0 +1,69 @@
+
+{
+  "rules": {
+    /* 💎 LUXURY MASTER SENTINEL RULES v2.0 */
+    
+    ".read": "auth != null && (auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+    ".write": "auth != null && auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2'",
+
+    "admins": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2'"
+      }
+    },
+
+    "global_messages": {
+      "active": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+        ".validate": "newData.hasChildren(['id', 'title', 'type', 'target'])"
+      }
+    },
+
+    "global_configs": {
+      "tiers": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2'"
+      }
+    },
+
+    "licenses": {
+      ".read": "auth != null && (auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+      "$key": {
+        /* Solo el backend o el Master Root pueden generar licencias */
+        ".write": "auth != null && (auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+        ".validate": "newData.hasChildren(['level', 'isActive'])",
+        "usedBy": {
+          ".write": "auth != null && !data.exists()"
+        }
+      }
+    },
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+        ".write": "auth != null && (auth.uid === $uid || auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+        
+        "config": {
+          "level": {
+            ".validate": "
+              newData.val() === data.val() || 
+              auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' ||
+              (newData.val() === 'free' && !data.exists()) || 
+              root.child('licenses').hasChild(newData.parent().child('licenseKey').val())
+            "
+          }
+        }
+      }
+    },
+
+    "audit_master": {
+      ".read": "auth != null && (auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+      ".write": "auth != null",
+      "$logId": {
+         ".validate": "newData.hasChildren(['event', 'timestamp', 'type', 'user'])"
+      }
+    }
+  }
+}

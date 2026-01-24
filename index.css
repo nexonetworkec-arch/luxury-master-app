@@ -1,0 +1,51 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --accent: #d4af37;
+  --bg-dark: #050505;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-dark);
+  color: white;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* Luxury Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 10px; }
+
+/* Print Optimizations - Fase 6 */
+@media print {
+  body { background: white !important; color: black !important; }
+  .print-hidden { display: none !important; }
+  #root { height: auto !important; overflow: visible !important; }
+}
+
+/* Luxury Placeholder Utility */
+.luxury-icon-placeholder {
+  @apply flex items-center justify-center border overflow-hidden transition-all duration-300;
+  font-family: 'Cinzel', serif;
+}
+
+/* Animaciones de Marca */
+@keyframes gold-pulse {
+  0% { text-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
+  50% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.5); }
+  100% { text-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
+}
+.animate-gold-text {
+  animation: gold-pulse 3s infinite ease-in-out;
+}

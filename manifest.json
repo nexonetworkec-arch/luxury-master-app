@@ -1,0 +1,18 @@
+
+{
+  "name": "LUXURY MASTER® AI",
+  "short_name": "LXM AI",
+  "description": "Elite Business System for Professional Giveaways.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#d4af37",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/8139/8139801.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

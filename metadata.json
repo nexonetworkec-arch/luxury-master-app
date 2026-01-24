@@ -1,0 +1,8 @@
+
+{
+  "name": "Luxury Master® AI - Global Nexus",
+  "description": "Sistema de gestión de sorteos corporativos de ultra-lujo con IA generativa de video y voz en tiempo real.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
