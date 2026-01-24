@@ -4,9 +4,12 @@ import { auth } from "./firebase";
 
 const API_BASE = (window as any).process?.env?.VITE_API_BASE || "/api";
 
+/**
+ * Cliente de comunicación con el Backend Seguro
+ */
 async function callBackend(path: string, body: any) {
   const user = auth.currentUser;
-  if (!user) throw new Error("AUTH_REQUIRED: Usuario no autenticado.");
+  if (!user) throw new Error("AUTH_REQUIRED: Debes iniciar sesión para usar funciones de IA.");
 
   const idToken = await user.getIdToken();
   
@@ -20,8 +23,12 @@ async function callBackend(path: string, body: any) {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "SERVER_ERROR");
+    let errorMessage = "SERVER_ERROR";
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.message || errorData.error || errorMessage;
+    } catch(e) {}
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -54,7 +61,8 @@ export const analyzeCode = async (code: string): Promise<AnalysisResult> => {
 
 export const generateBrandedBackground = async (prompt: string, aspectRatio: "1:1" | "16:9" | "9:16" = "16:9"): Promise<string | null> => {
   try {
-    const data = await callBackend("/generate-background", { prompt, aspectRatio, model: 'imagen-4.0-generate-001' });
+    // Los modelos Imagen solo están disponibles en el servidor
+    const data = await callBackend("/generate-background", { prompt, aspectRatio });
     return data.imageUrl;
   } catch (e) {
     return null;
@@ -63,7 +71,8 @@ export const generateBrandedBackground = async (prompt: string, aspectRatio: "1:
 
 export const generateVictoryVideo = async (prizeName: string): Promise<string | null> => {
   try {
-    const data = await callBackend("/generate-video", { prizeName, model: 'veo-3.1-fast-generate-preview' });
+    // La generación de video se delega al backend para proteger la API_KEY
+    const data = await callBackend("/generate-video", { prizeName });
     return data.videoUrl;
   } catch (e) {
     return null;

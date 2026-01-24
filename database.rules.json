@@ -1,22 +1,27 @@
 
 {
   "rules": {
-    /* 💎 LUXURY MASTER SENTINEL RULES v2.0 */
+    /* 💎 LUXURY MASTER SENTINEL RULES v3.0 - SECURITY HARDENED */
     
-    ".read": "auth != null && (auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
-    ".write": "auth != null && auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2'",
+    // Solo admins definidos en el nodo /admins pueden leer todo el sistema
+    ".read": "auth != null && root.child('admins').hasChild(auth.uid)",
+    
+    // Nadie puede escribir en la raíz directamente desde el cliente, solo vía Cloud Functions
+    ".write": "false",
 
     "admins": {
       ".read": "auth != null",
+      // Solo el servicio de backend o una cuenta raíz inicial pueden escribir aquí
       "$uid": {
-        ".write": "auth != null && auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2'"
+        ".write": "false" 
       }
     },
 
     "global_messages": {
       "active": {
         ".read": "auth != null",
-        ".write": "auth != null && (auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+        // Solo admins pueden emitir mensajes globales
+        ".write": "auth != null && root.child('admins').hasChild(auth.uid)",
         ".validate": "newData.hasChildren(['id', 'title', 'type', 'target'])"
       }
     },
@@ -24,16 +29,14 @@
     "global_configs": {
       "tiers": {
         ".read": "auth != null",
-        ".write": "auth != null && auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2'"
+        ".write": "false"
       }
     },
 
     "licenses": {
-      ".read": "auth != null && (auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+      ".read": "auth != null && root.child('admins').hasChild(auth.uid)",
       "$key": {
-        /* Solo el backend o el Master Root pueden generar licencias */
-        ".write": "auth != null && (auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
-        ".validate": "newData.hasChildren(['level', 'isActive'])",
+        ".write": "false", // Generación solo vía Backend (/api/licenses/generate)
         "usedBy": {
           ".write": "auth != null && !data.exists()"
         }
@@ -42,16 +45,15 @@
 
     "users": {
       "$uid": {
-        ".read": "auth != null && (auth.uid === $uid || auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
-        ".write": "auth != null && (auth.uid === $uid || auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+        ".read": "auth != null && (auth.uid === $uid || root.child('admins').hasChild(auth.uid))",
+        ".write": "auth != null && (auth.uid === $uid || root.child('admins').hasChild(auth.uid))",
         
         "config": {
           "level": {
             ".validate": "
               newData.val() === data.val() || 
-              auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' ||
-              (newData.val() === 'free' && !data.exists()) || 
-              root.child('licenses').hasChild(newData.parent().child('licenseKey').val())
+              root.child('admins').hasChild(auth.uid) ||
+              (newData.val() === 'free' && !data.exists())
             "
           }
         }
@@ -59,7 +61,7 @@
     },
 
     "audit_master": {
-      ".read": "auth != null && (auth.uid === 'AbKCnbjyvXc9e3zf3GOy35LCksz2' || root.child('admins').hasChild(auth.uid))",
+      ".read": "auth != null && root.child('admins').hasChild(auth.uid)",
       ".write": "auth != null",
       "$logId": {
          ".validate": "newData.hasChildren(['event', 'timestamp', 'type', 'user'])"
